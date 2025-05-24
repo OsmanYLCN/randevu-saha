@@ -1,0 +1,13 @@
+<h2>Sahalarım</h2>
+<a href="{% url 'saha_ekle' %}">Yeni Halısaha Ekle</a>
+<ul>
+  {% for saha in sahalar %}
+    <li>
+      {{ saha.name }} -
+      <a href="{% url 'saha_duzenle' saha.id %}">Düzenle</a> -
+      <a href="{% url 'saha_sil' saha.id %}">Sil</a>
+    </li>
+  {% empty %}
+    <li>Hiç saha yok.</li>
+  {% endfor %}
+</ul>

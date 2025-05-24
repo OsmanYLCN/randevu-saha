@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+{% if user.is_authenticated %}
+    <p>Hoş geldin, {{ user.username }}!</p>
+
+    {% if user.user_type == 'owner' %}
+        <a href="{% url 'saha_listesi' %}">Sahalarımı Yönet</a>
+    {% endif %}
+
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Çıkış Yap</button>
+    </form>
+
+{% else %}
+    <H1>RANDEVUSAHA'YA HOŞGELDİN!</H1>
+    <a href="{% url 'login' %}">Giriş Yap</a> | <a href="{% url 'register' %}">Kayıt Ol</a>
+{% endif %}
+
+</body>
+</html>
