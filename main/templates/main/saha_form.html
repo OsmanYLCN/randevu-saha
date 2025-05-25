@@ -1,6 +1,42 @@
-<h2>Halısaha Formu</h2>
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Yeni Halısaha Ekle</h2>
+
 <form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Kaydet</button>
+    {% csrf_token %}
+
+    <div>
+        <label for="id_name">Saha Adı:</label>
+        <input type="text" name="name" id="id_name" required>
+    </div>
+
+    <div>
+        <label for="id_address">Adres:</label>
+        <textarea name="address" id="id_address" rows="3" required></textarea>
+    </div>
+
+    <div>
+        <label for="id_phone">Telefon:</label>
+        <input type="tel" name="phone" id="id_phone" required>
+    </div>
+
+    <div>
+        <label for="id_hourly_price">Saatlik Ücret (₺):</label>
+        <input type="number" name="hourly_price" id="id_hourly_price" step="0.01" required>
+    </div>
+
+    <div>
+        <label for="id_location_url">Google Maps Linki:</label>
+        <input type="url" name="location_url" id="id_location_url" required>
+    </div>
+
+    <!-- Gizli alan: kullanıcı backend'de atanıyor, ama form yapısı için gösteriyoruz -->
+    <input type="hidden" name="owner" value="{{ request.user.id }}">
+
+    <div>
+        <button type="submit">Kaydet</button>
+    </div>
 </form>
+{% endblock %}

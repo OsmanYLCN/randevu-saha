@@ -1,6 +1,26 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
 <h2>Giriş Yap</h2>
+
 <form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Giriş</button>
+    {% csrf_token %}
+
+    <div>
+        <label for="id_username">Kullanıcı Adı:</label>
+        <input type="text" name="username" id="id_username" required>
+    </div>
+
+    <div>
+        <label for="id_password">Şifre:</label>
+        <input type="password" name="password" id="id_password" required>
+    </div>
+
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <div>
+        <button type="submit">Giriş</button>
+    </div>
 </form>
+{% endblock %}

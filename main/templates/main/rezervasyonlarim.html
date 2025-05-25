@@ -1,0 +1,23 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+<h2>📅 Rezervasyonlarım</h2>
+
+{% if rezervasyonlar %}
+    {% for rezervasyon in rezervasyonlar %}
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+            <p><strong>Saha:</strong> {{ rezervasyon.saha.name }}</p>
+            <p><strong>Adres:</strong> {{ rezervasyon.saha.address }}</p>
+            <p><strong>Tarih:</strong> {{ rezervasyon.date }}</p>
+            <p><strong>Saat:</strong> {{ rezervasyon.hour_range }}</p>
+
+            <form method="post" action="{% url 'rezervasyon_iptal' rezervasyon.id %}">
+                {% csrf_token %}
+                <button type="submit">İptal Et</button>
+            </form>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Hiç rezervasyonun yok.</p>
+{% endif %}
+{% endblock %}

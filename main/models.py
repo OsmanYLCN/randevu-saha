@@ -31,9 +31,10 @@ class Reservation(models.Model):
     saha = models.ForeignKey(Halisaha, on_delete=models.CASCADE)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     date = models.DateField()
+    hour_range = models.CharField(max_length=20)  # örneğin "13:00 - 14:00"
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.saha.name} - {self.date} {self.hour} ({self.user.username})"
-    
+        return f"{self.saha.name} - {self.date} {self.hour_range} ({self.user.username})"
+
     

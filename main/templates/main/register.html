@@ -1,6 +1,37 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
 <h2>Kayıt Ol</h2>
+
 <form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Kayıt Ol</button>
+    {% csrf_token %}
+
+    <div>
+        <label for="id_username">Kullanıcı Adı:</label>
+        <input type="text" name="username" id="id_username" required>
+    </div>
+
+    <div>
+        <label for="id_email">E-posta:</label>
+        <input type="email" name="email" id="id_email" required>
+    </div>
+
+    <div>
+        <label for="id_password1">Şifre:</label>
+        <input type="password" name="password1" id="id_password1" required>
+    </div>
+
+    <div>
+        <label for="id_password2">Şifre (tekrar):</label>
+        <input type="password" name="password2" id="id_password2" required>
+    </div>
+
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <div>
+        <button type="submit">Kayıt Ol</button>
+    </div>
 </form>
+{% endblock %}
+

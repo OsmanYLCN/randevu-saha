@@ -13,6 +13,9 @@
         <a href="{% url 'saha_listesi' %}">Sahalarımı Yönet</a>
     {% endif %}
 
+    <a href="{% url 'rezervasyonlarim' %}">Rezervasyonlarım</a>
+
+
     <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
         <button type="submit">Çıkış Yap</button>

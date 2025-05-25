@@ -1,0 +1,38 @@
+{% extends 'main/base.html' %}
+{% block content %}
+
+<h2>{{ saha.name }} için Rezervasyon</h2>
+
+<!-- Saha bilgileri -->
+<p><strong>Adres:</strong> {{ saha.address }}</p>
+<p><strong>Telefon:</strong> {{ saha.phone }}</p>
+<p><strong>Ücret:</strong> {{ saha.hourly_price }} ₺</p>
+
+<!-- Eğer rezervasyon iptal edilmişse veya başarıyla tamamlanmışsa mesaj göster -->
+{% if mesaj %}
+    <p><strong>{{ mesaj }}</strong></p>
+
+<!-- Eğer rezervasyon formu gönderildiyse ve ödeme ekranı açıldıysa -->
+{% elif show_payment %}
+    <h3>💳 Ödeme Ekranı</h3>
+    <p>Toplam Ücret: {{ saha.hourly_price }} ₺</p>
+    <p>Kapora: 500.00 ₺</p>
+
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="odeme_onayla">Ödemeyi Onayla</button>
+        <button type="submit" name="iptal_et">İptal Et</button>
+    </form>
+
+<!-- İlk açılışta ya da form hatalıysa rezervasyon formunu göster -->
+{% else %}
+    <h3>📅 Rezervasyon Formu</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" name="form_submit">Rezervasyon Yap</button>
+    </form>
+{% endif %}
+
+{% endblock %}

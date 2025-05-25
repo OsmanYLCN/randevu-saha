@@ -13,5 +13,8 @@ urlpatterns = [
     path('saha/ekle/', views.saha_ekle, name='saha_ekle'),
     path('saha/<int:saha_id>/duzenle/', views.saha_duzenle, name='saha_duzenle'),
     path('saha/<int:saha_id>/sil/', views.saha_sil, name='saha_sil'),
+    path('saha/<int:saha_id>/', views.saha_detay, name='saha_detay'),
+    path('rezervasyonlarim/', views.rezervasyonlarim, name='rezervasyonlarim'),
+    path('rezervasyon/<int:rezervasyon_id>/iptal/', views.rezervasyon_iptal, name='rezervasyon_iptal'),
 
 ]

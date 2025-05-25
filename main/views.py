@@ -6,10 +6,11 @@ from .models import CustomUser
 from django.contrib.auth import login
 from .forms import CustomUserCreationForm
 from django.shortcuts import get_object_or_404
-from .models import Halisaha
+from .models import Halisaha, Reservation
 from .forms import HalisahaForm
+from .forms import ReservationForm
 
-
+from django.db.models import Q  # Arama için Q nesnesi
 
 @login_required
 def saha_listesi(request):
@@ -17,7 +18,21 @@ def saha_listesi(request):
         sahalar = Halisaha.objects.filter(owner=request.user)
     else:
         sahalar = Halisaha.objects.all()
+
+    # Arama filtreleri
+    name = request.GET.get('name')
+    address = request.GET.get('address')
+    phone = request.GET.get('phone')
+
+    if name:
+        sahalar = sahalar.filter(name__icontains=name)
+    if address:
+        sahalar = sahalar.filter(address__icontains=address)
+    if phone:
+        sahalar = sahalar.filter(phone__icontains=phone)
+
     return render(request, 'main/saha_listesi.html', {'sahalar': sahalar})
+
 
 @login_required
 def saha_ekle(request):
@@ -53,7 +68,7 @@ def saha_duzenle(request, saha_id):
 @login_required
 def saha_sil(request, saha_id):
     saha = get_object_or_404(Halisaha, id=saha_id, owner=request.user)
-    saha_sil()
+    saha.delete()
     return redirect('saha_listesi')
 
 
@@ -72,3 +87,58 @@ def register(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'main/register.html', {'form': form})
+
+
+@login_required
+def saha_detay(request, saha_id):
+    saha = get_object_or_404(Halisaha, id=saha_id)
+    form = ReservationForm()
+
+    # Aşama 1: Form gönderildiğinde veriyi session'a kaydet
+    if request.method == 'POST' and 'form_submit' in request.POST:
+        form = ReservationForm(request.POST)
+        if form.is_valid():
+            request.session['rez_saha_id'] = saha.id
+            request.session['rez_date'] = form.cleaned_data['date'].isoformat()
+            request.session['rez_hour_range'] = form.cleaned_data['hour_range']
+            return render(request, 'main/saha_detail.html', {
+                'saha': saha,
+                'form': form,
+                'show_payment': True  # Ödeme ekranı gözüksün
+            })
+
+    # Aşama 2: Ödeme onaylandıysa rezervasyon kaydı oluştur
+    elif request.method == 'POST' and 'odeme_onayla' in request.POST:
+        Reservation.objects.create(
+            saha=saha,
+            user=request.user,
+            date=request.session.get('rez_date'),
+            hour_range=request.session.get('rez_hour_range'),
+        )
+        return render(request, 'main/saha_detail.html', {
+            'saha': saha,
+            'form': ReservationForm(),
+            'mesaj': "Rezervasyon oluşturuldu. Güzel maçlar dileriz! ⚽"
+        })
+
+    # Aşama 3: İptal edildiyse hiçbir şey kaydetme
+    elif request.method == 'POST' and 'iptal_et' in request.POST:
+        return render(request, 'main/saha_detail.html', {
+            'saha': saha,
+            'form': ReservationForm(),
+            'mesaj': "Rezervasyon iptal edildi. Paran 2–5 gün içinde hesabında! 💸"
+        })
+
+    return render(request, 'main/saha_detail.html', {'saha': saha, 'form': form})
+
+
+@login_required
+def rezervasyonlarim(request):
+    rezervasyonlar = Reservation.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'main/rezervasyonlarim.html', {'rezervasyonlar': rezervasyonlar})
+
+@login_required
+def rezervasyon_iptal(request, rezervasyon_id):
+    rezervasyon = get_object_or_404(Reservation, id=rezervasyon_id, user=request.user)
+    rezervasyon.delete()
+    return redirect('rezervasyonlarim')

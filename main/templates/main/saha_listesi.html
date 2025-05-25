@@ -1,13 +1,80 @@
-<h2>Sahalarım</h2>
-<a href="{% url 'saha_ekle' %}">Yeni Halısaha Ekle</a>
-<ul>
-  {% for saha in sahalar %}
-    <li>
-      {{ saha.name }} -
-      <a href="{% url 'saha_duzenle' saha.id %}">Düzenle</a> -
-      <a href="{% url 'saha_sil' saha.id %}">Sil</a>
-    </li>
-  {% empty %}
-    <li>Hiç saha yok.</li>
-  {% endfor %}
-</ul>
+<!-- Tüm sayfa, varsa base.html dosyasını miras alır -->
+{% extends 'main/base.html' %}
+{% load static %}  <!-- static dosyaları yüklemek için -->
+
+{% block content %}
+<div class="container">
+    <!-- Sayfanın büyük başlığı -->
+    <h1>Halısaha Listesi</h1>
+
+    <!-- Arama Formu -->
+    <form method="get">
+        <!-- Saha adı için arama kutusu -->
+        <div>
+            <label for="name">Saha Adı:</label>
+            <input type="text" name="name" id="name" value="{{ request.GET.name }}">
+        </div>
+        <!-- Adres için arama kutusu -->
+        <div>
+            <label for="address">Adres:</label>
+            <input type="text" name="address" id="address" value="{{ request.GET.address }}">
+        </div>
+        <!-- Telefon için arama kutusu -->
+        <div>
+            <label for="phone">Telefon:</label>
+            <input type="text" name="phone" id="phone" value="{{ request.GET.phone }}">
+        </div>
+
+        <!-- Butonlar: Ara ve Yeni Saha Ekle -->
+        <div>
+            <button type="submit">Ara</button>
+            {% if user.user_type == 'owner' %}
+            <a href="{% url 'saha_ekle' %}">+ Yeni Saha Ekle</a>
+{% endif %}
+
+        </div>
+    </form>
+
+    <!-- Sahaların listelendiği tablo -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Ad</th>
+                <th>Adres</th>
+                <th>Telefon</th>
+                <th>Ücret</th>
+                <th>Harita</th>
+                <!-- Sadece saha sahibi kullanıcılar için işlem sütunu -->
+                {% if user.user_type == 'owner' %}
+                <th>İşlemler</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for saha in sahalar %}
+            <tr>
+                <td>{{ saha.name }}</td>
+                <td>{{ saha.address }}</td>
+                <td>{{ saha.phone }}</td>
+                <td>{{ saha.hourly_price }} ₺</td>
+                <td>
+                    <!-- Harita bağlantısı -->
+                    <a href="{{ saha.location_url }}" target="_blank">Haritayı Aç</a>
+                </td>
+                {% if user.user_type == 'owner' %}
+                <td>
+                    <a href="{% url 'saha_duzenle' saha.id %}">Düzenle</a> |
+                    <a href="{% url 'saha_sil' saha.id %}">Sil</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <!-- Eğer hiç saha yoksa bu mesaj gösterilir -->
+            <tr>
+                <td colspan="6">Saha bulunamadı.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
