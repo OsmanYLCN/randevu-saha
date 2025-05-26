@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.utils import timezone
 
 from .models import Halisaha, Reservation, CustomUser
 from .forms import HalisahaForm, ReservationForm, CustomUserCreationForm
@@ -28,17 +29,10 @@ def saha_listesi(request):
     else:
         sahalar = Halisaha.objects.all()
 
-    # Arama filtreleri
+    # Sadece isim filtresi
     name = request.GET.get('name')
-    address = request.GET.get('address')
-    phone = request.GET.get('phone')
-
     if name:
         sahalar = sahalar.filter(name__icontains=name)
-    if address:
-        sahalar = sahalar.filter(address__icontains=address)
-    if phone:
-        sahalar = sahalar.filter(phone__icontains=phone)
 
     return render(request, 'main/saha_listesi.html', {'sahalar': sahalar})
 
@@ -67,11 +61,15 @@ def saha_duzenle(request, saha_id):
         form = HalisahaForm(request.POST, instance=saha)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Saha başarıyla güncellendi.')
             return redirect('saha_listesi')
         else:
-            form = HalisahaForm(instance=saha)
+            messages.error(request, 'Formda hatalar var, lütfen düzeltin.')
+    else:
+        form = HalisahaForm(instance=saha)
 
-        return render(request, 'main/saha_form.html', {'form': form})
+    # Render the form for both GET and invalid POST requests
+    return render(request, 'main/saha_form.html', {'form': form, 'saha': saha})
     
 
 @login_required
@@ -123,45 +121,92 @@ def login_view(request):
 @login_required
 def saha_detay(request, saha_id):
     saha = get_object_or_404(Halisaha, id=saha_id)
-    form = ReservationForm()
 
-    # Aşama 1: Form gönderildiğinde veriyi session'a kaydet
-    if request.method == 'POST' and 'form_submit' in request.POST:
-        form = ReservationForm(request.POST)
-        if form.is_valid():
-            request.session['rez_saha_id'] = saha.id
-            request.session['rez_date'] = form.cleaned_data['date'].isoformat()
-            request.session['rez_hour_range'] = form.cleaned_data['hour_range']
-            return render(request, 'main/saha_detail.html', {
-                'saha': saha,
-                'form': form,
-                'show_payment': True  # Ödeme ekranı gözüksün
-            })
+    if request.user.user_type == 'owner':
+        # Admin ise sahanın tüm rezervasyonlarını göster
+        rezervasyonlar = Reservation.objects.filter(saha=saha).order_by('-date', '-hour_range')
+        return render(request, 'main/saha_rezervasyonlari.html', {'saha': saha, 'rezervasyonlar': rezervasyonlar})
+    else:
+        # Normal kullanıcı ise rezervasyon yapma formunu göster
+        form = ReservationForm()
 
-    # Aşama 2: Ödeme onaylandıysa rezervasyon kaydı oluştur
-    elif request.method == 'POST' and 'odeme_onayla' in request.POST:
-        Reservation.objects.create(
-            saha=saha,
-            user=request.user,
-            date=request.session.get('rez_date'),
-            hour_range=request.session.get('rez_hour_range'),
-        )
-        return render(request, 'main/saha_detail.html', {
-            'saha': saha,
-            'form': ReservationForm(),
-            'mesaj': "Rezervasyon oluşturuldu. Güzel maçlar dileriz! ⚽"
-        })
+        # Aşama 1: Form gönderildiğinde veriyi session'a kaydet
+        if request.method == 'POST' and 'form_submit' in request.POST:
+            form = ReservationForm(request.POST)
+            if form.is_valid():
+                # Seçilen tarih ve saatin müsait olup olmadığını kontrol et
+                date = form.cleaned_data['date']
+                hour_range = form.cleaned_data['hour_range']
+                
+                # Aynı tarih ve saatte başka rezervasyon var mı kontrol et
+                existing_reservation = Reservation.objects.filter(
+                    saha=saha,
+                    date=date,
+                    hour_range=hour_range
+                ).exists()
 
-    # Aşama 3: İptal edildiyse hiçbir şey kaydetme
-    elif request.method == 'POST' and 'iptal_et' in request.POST:
-        return render(request, 'main/saha_detail.html', {
-            'saha': saha,
-            'form': ReservationForm(),
-            'mesaj': "Rezervasyon iptal edildi. Paran 2–5 gün içinde hesabında! 💸"
-        })
+                if existing_reservation:
+                    messages.error(request, "Bu tarih ve saat için rezervasyon zaten yapılmış. Lütfen başka bir tarih veya saat seçin.")
+                    return render(request, 'main/saha_detail.html', {
+                        'saha': saha,
+                        'form': form
+                    })
 
-    return render(request, 'main/saha_detail.html', {'saha': saha, 'form': form})
+                # Geçmiş tarih kontrolü
+                if date < timezone.now().date():
+                    messages.error(request, "Geçmiş bir tarih seçemezsiniz.")
+                    return render(request, 'main/saha_detail.html', {
+                        'saha': saha,
+                        'form': form
+                    })
 
+                request.session['rez_saha_id'] = saha.id
+                request.session['rez_date'] = form.cleaned_data['date'].isoformat()
+                request.session['rez_hour_range'] = form.cleaned_data['hour_range']
+                return render(request, 'main/saha_detail.html', {
+                    'saha': saha,
+                    'form': form,
+                    'show_payment': True  # Ödeme ekranı gözüksün
+                })
+
+        # Aşama 2: Ödeme onaylandıysa rezervasyon kaydı oluştur
+        elif request.method == 'POST' and 'odeme_onayla' in request.POST:
+            # Session'dan bilgileri al ve rezervasyon oluştur
+            saha_id_from_session = request.session.get('rez_saha_id')
+            date_from_session = request.session.get('rez_date')
+            hour_range_from_session = request.session.get('rez_hour_range')
+
+            if saha_id_from_session and date_from_session and hour_range_from_session:
+                 saha_from_session = get_object_or_404(Halisaha, id=saha_id_from_session)
+                 Reservation.objects.create(
+                    saha=saha_from_session,
+                    user=request.user,
+                    date=date_from_session,
+                    hour_range=hour_range_from_session,
+                 )
+                 # Session'daki rezervasyon bilgilerini temizle
+                 del request.session['rez_saha_id']
+                 del request.session['rez_date']
+                 del request.session['rez_hour_range']
+                 messages.success(request, "Rezervasyon oluşturuldu. Güzel maçlar dileriz! ⚽")
+                 return redirect('rezervasyonlarim') # Rezervasyonlarım sayfasına yönlendir
+            else:
+                 messages.error(request, "Rezervasyon bilgileri eksik.")
+                 return redirect('saha_detay', saha_id=saha.id)
+
+        # Aşama 3: İptal edildiyse hiçbir şey kaydetme
+        elif request.method == 'POST' and 'iptal_et' in request.POST:
+            # Session'daki rezervasyon bilgilerini temizle
+            if 'rez_saha_id' in request.session:
+                del request.session['rez_saha_id']
+            if 'rez_date' in request.session:
+                del request.session['rez_date']
+            if 'rez_hour_range' in request.session:
+                del request.session['rez_hour_range']
+            messages.info(request, "Rezervasyon iptal edildi.")
+            return redirect('saha_detay', saha_id=saha.id)
+
+        return render(request, 'main/saha_detail.html', {'saha': saha, 'form': form})
 
 @login_required
 def rezervasyonlarim(request):
@@ -174,6 +219,17 @@ def rezervasyon_iptal(request, rezervasyon_id):
     rezervasyon.delete()
     return redirect('rezervasyonlarim')
 
+@login_required
+def rezervasyonlar(request):
+    if request.user.user_type != 'owner':
+        messages.error(request, "Bu sayfayı görüntüleme izniniz yok.")
+        return redirect('home')
+    
+    # Admin kullanıcının sahalarına ait tüm rezervasyonları çek
+    sahalar = Halisaha.objects.filter(owner=request.user)
+    rezervasyonlar = Reservation.objects.filter(saha__in=sahalar).order_by('-date', '-hour_range')
+
+    return render(request, 'main/rezervasyonlar.html', {'rezervasyonlar': rezervasyonlar})
 
 # API Views
 class UserViewSet(viewsets.ModelViewSet):

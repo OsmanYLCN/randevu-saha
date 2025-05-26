@@ -19,6 +19,7 @@ urlpatterns = [
     path('saha/<int:saha_id>/', views.saha_detay, name='saha_detay'),
     
     # Rezervasyon İşlemleri
+    path('rezervasyonlar/', views.rezervasyonlar, name='rezervasyonlar'),
     path('rezervasyonlarim/', views.rezervasyonlarim, name='rezervasyonlarim'),
     path('rezervasyon/<int:rezervasyon_id>/iptal/', views.rezervasyon_iptal, name='rezervasyon_iptal'),
 ]

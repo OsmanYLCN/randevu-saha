@@ -63,9 +63,13 @@
             </div>
         </div>
 
-        {% if mesaj %}
-        <div class="alert alert-success">
-            {{ mesaj }}
+        {% if messages %}
+        <div class="alert-container">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
 
@@ -73,8 +77,25 @@
             <h3>Rezervasyon Yap</h3>
             <form method="post">
                 {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" name="form_submit" class="btn">Rezervasyon Yap</button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.date.id_for_label }}">Tarih</label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                        <div class="error-message">{{ form.date.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.hour_range.id_for_label }}">Saat</label>
+                        {{ form.hour_range }}
+                        {% if form.hour_range.errors %}
+                        <div class="error-message">{{ form.hour_range.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" name="form_submit" class="btn btn-primary">Rezervasyon Yap</button>
+                </div>
             </form>
 
             {% if show_payment %}
@@ -83,8 +104,10 @@
                 <p>Toplam Tutar: {{ saha.hourly_price }} ₺</p>
                 <form method="post">
                     {% csrf_token %}
-                    <button type="submit" name="odeme_onayla" class="btn">Ödemeyi Onayla</button>
-                    <button type="submit" name="iptal_et" class="btn btn-danger">İptal Et</button>
+                    <div class="btn-group">
+                        <button type="submit" name="odeme_onayla" class="btn btn-primary">Ödemeyi Onayla</button>
+                        <button type="submit" name="iptal_et" class="btn btn-secondary">İptal Et</button>
+                    </div>
                 </form>
             </div>
             {% endif %}

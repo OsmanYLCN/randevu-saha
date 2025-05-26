@@ -34,7 +34,7 @@ body {
     padding: 1.5rem;
     box-shadow: var(--shadow);
     position: relative;
-    overflow: hidden;
+    z-index: 1000;
 }
 
 .header::before {
@@ -308,35 +308,42 @@ a:hover {
 .logo {
     text-decoration: none;
     color: var(--white);
-    transition: var(--transition);
-}
-
-.logo:hover {
-    opacity: 0.9;
-    transform: scale(1.02);
+    transition: transform 0.2s ease;
 }
 
 /* User Menu Styles */
 .user-menu {
     position: relative;
+    display: inline-block;
+    z-index: 1001;
 }
 
 .user-menu-btn {
     background: none;
     border: none;
     color: var(--white);
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1rem;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
     transition: var(--transition);
+    border-radius: 8px;
+    width: auto;
+    min-width: 120px;
+    justify-content: center;
+    position: relative;
+    z-index: 1001;
 }
 
 .user-menu-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.user-menu-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
 
 .user-menu-btn i {
@@ -348,33 +355,35 @@ a:hover {
     top: 100%;
     right: 0;
     background: var(--white);
-    border-radius: 8px;
+    min-width: 200px;
+    border-radius: 12px;
     box-shadow: var(--shadow);
-    min-width: 220px;
-    display: none;
-    z-index: 1000;
+    padding: 0.5rem;
     margin-top: 0.5rem;
-    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: var(--transition);
+    z-index: 1002;
+    pointer-events: none;
 }
 
 .user-dropdown.show {
-    display: block;
-    animation: fadeIn 0.2s ease;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .user-dropdown a {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    padding: 1rem;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
     color: #2c3e50;
     text-decoration: none;
+    border-radius: 8px;
     transition: var(--transition);
-    border-bottom: 1px solid #eee;
-}
-
-.user-dropdown a:last-child {
-    border-bottom: none;
 }
 
 .user-dropdown a:hover {
@@ -383,18 +392,34 @@ a:hover {
 }
 
 .user-dropdown a i {
+    font-size: 1.1rem;
     width: 20px;
     text-align: center;
-    font-size: 1.1rem;
 }
 
 .logout-link {
-    color: #dc3545 !important;
+    color: #e74c3c !important;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid #eee;
 }
 
 .logout-link:hover {
-    background: #dc3545 !important;
-    color: var(--white) !important;
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+
+.logout-link i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
 }
 
 /* Saha Listesi Styles */
@@ -437,17 +462,19 @@ a:hover {
 
 .saha-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     margin-top: 2rem;
 }
 
 .saha-card {
     background: var(--white);
-    border-radius: 20px;
+    border-radius: 15px;
     box-shadow: var(--shadow);
     overflow: hidden;
     transition: var(--transition);
+    display: flex;
+    flex-direction: column;
 }
 
 .saha-card:hover {
@@ -542,17 +569,24 @@ a:hover {
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+    .saha-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
+    .saha-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
     .saha-container {
         padding: 1rem;
     }
 
     .search-section {
         padding: 1.5rem;
-    }
-
-    .saha-grid {
-        grid-template-columns: 1fr;
     }
 }
 
@@ -563,12 +597,13 @@ a:hover {
     padding: 2rem;
 }
 
-.saha-detail-card {
-    background: var(--white);
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
+.saha-detail-container {
+    max-width: 100%;
+    width: 100%;
+    padding: 2rem;
+    box-sizing: border-box;
 }
+
 
 .saha-detail-header {
     padding: 2rem;
@@ -577,6 +612,8 @@ a:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-top-left-radius: 50px;
+    border-top-right-radius: 50px;
 }
 
 .saha-detail-header h2 {
@@ -848,4 +885,259 @@ a:hover {
     .rezervasyon-footer .btn {
         width: 100%;
     }
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 0.5rem 0;
+}
+
+.logout-form {
+    width: 100%;
+}
+
+.logout-link {
+    color: #e74c3c !important;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+.logout-link:hover {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+
+.logout-link i {
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* Saha Form Styles */
+.saha-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 2rem;
+}
+
+.saha-form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.saha-form-header h2 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.saha-form-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.saha-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.saha-form .form-group {
+    margin-bottom: 0;
+}
+
+.saha-form label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #2c3e50;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.saha-form label i {
+    color: var(--primary-color);
+}
+
+.saha-form input,
+.saha-form textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    transition: var(--transition);
+    font-size: 1rem;
+    background-color: #f8f9fa;
+}
+
+.saha-form input:focus,
+.saha-form textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
+    background-color: var(--white);
+}
+
+.saha-form .form-text {
+    display: block;
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.form-actions .btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--gradient);
+    color: var(--white);
+}
+
+.btn-outline {
+    background: none;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline:hover {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+@media (max-width: 768px) {
+    .saha-form-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+}
+
+/* Rezervasyonlar Sayfası Styles (Admin) */
+.rezervasyon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Rezervasyon öğeleri arasına boşluk */
+    margin-top: 2rem;
+}
+
+.rezervasyon-item-card {
+    background: var(--white);
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.rezervasyon-item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.1);
+}
+
+.rezervasyon-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.rezervasyon-item-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+.rezervasyon-item-date {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.rezervasyon-item-date i {
+    color: var(--secondary-color);
+}
+
+.rezervasyon-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* Responsive for Reservation List */
+@media (max-width: 768px) {
+    .rezervasyon-item-card {
+        padding: 1rem;
+    }
+
+    .rezervasyon-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
 } 
+
+.profile-content {
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap; /* Mobil uyumluluk için */
+  }
+  
+  /* Sol ve sağ kutular */
+  .profile-info-section,
+  .password-section {
+    flex: 1;
+    min-width: 300px;
+  }
+
+  .profile-container {
+    max-width: 1400px; /* 2 kat genişlik */
+    width: 95%;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: var(--white);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    box-sizing: border-box;
+  }
+  
+  
