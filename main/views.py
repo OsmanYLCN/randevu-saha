@@ -1,15 +1,14 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from .models import CustomUser
 from django.contrib.auth import login
-from .forms import CustomUserCreationForm
-from django.shortcuts import get_object_or_404
-from .models import Halisaha, Reservation
-from .forms import HalisahaForm
-from .forms import ReservationForm
 
+from .models import Halisaha, Reservation, CustomUser
+from .forms import HalisahaForm, ReservationForm, CustomUserCreationForm
+from rest_framework import viewsets
+
+from .serializers import HaliSahaSerializer
 from django.db.models import Q  # Arama için Q nesnesi
 
 @login_required
@@ -142,3 +141,8 @@ def rezervasyon_iptal(request, rezervasyon_id):
     rezervasyon = get_object_or_404(Reservation, id=rezervasyon_id, user=request.user)
     rezervasyon.delete()
     return redirect('rezervasyonlarim')
+
+
+class HalisahaViewSet(viewsets.ModelViewSet):
+    queryset = Halisaha.objects.all()
+    serializer_class = HaliSahaSerializer

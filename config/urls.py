@@ -16,8 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from main.views import HalisahaViewSet
+
+router = DefaultRouter()
+router.register(r'halisahalar', HalisahaViewSet)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main.urls')),  # main uygulamasına yönlendir
+    path('api/', include(router.urls)),
 ]
