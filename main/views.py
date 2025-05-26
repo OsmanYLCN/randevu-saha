@@ -143,6 +143,7 @@ def rezervasyon_iptal(request, rezervasyon_id):
     return redirect('rezervasyonlarim')
 
 
+# API için bir viewset
 class HalisahaViewSet(viewsets.ModelViewSet):
     queryset = Halisaha.objects.all()
     serializer_class = HaliSahaSerializer
