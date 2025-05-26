@@ -2,10 +2,78 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}RandevuSaha{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    {% block content %}
-    {% endblock %}
+    <header class="header">
+        <div class="container header-container">
+            <a href="{% url 'home' %}" class="logo">
+                <h1>RandevuSaha</h1>
+            </a>
+            {% if user.is_authenticated %}
+            <div class="user-menu">
+                <button class="user-menu-btn">
+                    <i class="fas fa-user-circle"></i>
+                    {{ user.username }}
+                </button>
+                <div class="user-dropdown">
+                    <a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil Bilgilerim</a>
+                    <a href="{% url 'rezervasyonlarim' %}"><i class="fas fa-calendar-alt"></i> Rezervasyonlarım</a>
+                    {% if user.user_type == 'owner' %}
+                    <a href="{% url 'saha_listesi' %}"><i class="fas fa-futbol"></i> Sahalarım</a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 RandevuSaha. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Kullanıcı menüsü için JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenuBtn = document.querySelector('.user-menu-btn');
+            const userDropdown = document.querySelector('.user-dropdown');
+            
+            if (userMenuBtn && userDropdown) {
+                userMenuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('show');
+                });
+
+                // Menü dışına tıklandığında kapat
+                document.addEventListener('click', function(event) {
+                    if (!userMenuBtn.contains(event.target) && !userDropdown.contains(event.target)) {
+                        userDropdown.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

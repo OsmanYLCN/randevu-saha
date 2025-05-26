@@ -2,79 +2,69 @@
 {% extends 'main/base.html' %}
 {% load static %}  <!-- static dosyaları yüklemek için -->
 
+{% block title %}Saha Listesi - RandevuSaha{% endblock %}
+
 {% block content %}
-<div class="container">
-    <!-- Sayfanın büyük başlığı -->
-    <h1>Halısaha Listesi</h1>
+<div class="saha-container">
+    <div class="search-section">
+        <h2>Saha Ara</h2>
+        <form method="get" class="search-form">
+            <div class="search-inputs">
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="Saha Adı" value="{{ request.GET.name }}">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="address" placeholder="Adres" value="{{ request.GET.address }}">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="phone" placeholder="Telefon" value="{{ request.GET.phone }}">
+                </div>
+            </div>
+            <button type="submit" class="btn search-btn">
+                <i class="fas fa-search"></i> Ara
+            </button>
+        </form>
+    </div>
 
-    <!-- Arama Formu -->
-    <form method="get">
-        <!-- Saha adı için arama kutusu -->
-        <div>
-            <label for="name">Saha Adı:</label>
-            <input type="text" name="name" id="name" value="{{ request.GET.name }}">
-        </div>
-        <!-- Adres için arama kutusu -->
-        <div>
-            <label for="address">Adres:</label>
-            <input type="text" name="address" id="address" value="{{ request.GET.address }}">
-        </div>
-        <!-- Telefon için arama kutusu -->
-        <div>
-            <label for="phone">Telefon:</label>
-            <input type="text" name="phone" id="phone" value="{{ request.GET.phone }}">
-        </div>
-
-        <!-- Butonlar: Ara ve Yeni Saha Ekle -->
-        <div>
-            <button type="submit">Ara</button>
-            {% if user.user_type == 'owner' %}
-            <a href="{% url 'saha_ekle' %}">+ Yeni Saha Ekle</a>
-{% endif %}
-
-        </div>
-    </form>
-
-    <!-- Sahaların listelendiği tablo -->
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Ad</th>
-                <th>Adres</th>
-                <th>Telefon</th>
-                <th>Ücret</th>
-                <th>Harita</th>
-                <!-- Sadece saha sahibi kullanıcılar için işlem sütunu -->
-                {% if user.user_type == 'owner' %}
-                <th>İşlemler</th>
+    <div class="saha-grid">
+        {% for saha in sahalar %}
+        <div class="saha-card">
+            <div class="saha-header">
+                <h3>{{ saha.name }}</h3>
+                {% if user.user_type == 'owner' and saha.owner == user %}
+                <div class="saha-actions">
+                    <a href="{% url 'saha_duzenle' saha.id %}" class="btn-icon" title="Düzenle">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'saha_sil' saha.id %}" class="btn-icon delete" title="Sil" onclick="return confirm('Bu sahayı silmek istediğinizden emin misiniz?')">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
                 {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for saha in sahalar %}
-            <tr>
-                <td>{{ saha.name }}</td>
-                <td>{{ saha.address }}</td>
-                <td>{{ saha.phone }}</td>
-                <td>{{ saha.hourly_price }} ₺</td>
-                <td>
-                    <!-- Harita bağlantısı -->
-                    <a href="{{ saha.location_url }}" target="_blank">Haritayı Aç</a>
-                </td>
-                {% if user.user_type == 'owner' %}
-                <td>
-                    <a href="{% url 'saha_duzenle' saha.id %}">Düzenle</a> |
-                    <a href="{% url 'saha_sil' saha.id %}">Sil</a>
-                </td>
-                {% endif %}
-            </tr>
-            {% empty %}
-            <!-- Eğer hiç saha yoksa bu mesaj gösterilir -->
-            <tr>
-                <td colspan="6">Saha bulunamadı.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </div>
+            <div class="saha-info">
+                <p><i class="fas fa-map-marker-alt"></i> {{ saha.address }}</p>
+                <p><i class="fas fa-phone"></i> {{ saha.phone }}</p>
+                <p><i class="fas fa-clock"></i> {{ saha.opening_hours }}</p>
+            </div>
+            <div class="saha-footer">
+                <a href="{% url 'saha_detay' saha.id %}" class="btn">Rezervasyon Yap</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-saha">
+            <i class="fas fa-search"></i>
+            <p>Aradığınız kriterlere uygun saha bulunamadı.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if user.user_type == 'owner' %}
+    <div class="add-saha">
+        <a href="{% url 'saha_ekle' %}" class="btn">
+            <i class="fas fa-plus"></i> Yeni Saha Ekle
+        </a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -21,6 +21,7 @@ class Halisaha(models.Model):
     phone = models.CharField(max_length=20)
     hourly_price = models.DecimalField(max_digits=6, decimal_places=2)
     location_url = models.URLField(help_text="Google Maps bağlantısı")
+    opening_hours = models.CharField(max_length=100, default="09:00 - 23:00", help_text="Örn: 09:00 - 23:00")
 
     def __str__(self):
         return self.name

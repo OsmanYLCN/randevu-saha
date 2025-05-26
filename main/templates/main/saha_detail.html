@@ -1,38 +1,94 @@
 {% extends 'main/base.html' %}
+
+{% block title %}{{ saha.name }} - RandevuSaha{% endblock %}
+
 {% block content %}
+<div class="saha-detail-container">
+    <div class="saha-detail-card">
+        <div class="saha-detail-header">
+            <h2>{{ saha.name }}</h2>
+            {% if user.user_type == 'owner' and saha.owner == user %}
+            <div class="saha-actions">
+                <a href="{% url 'saha_duzenle' saha.id %}" class="btn-icon" title="Düzenle">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'saha_sil' saha.id %}" class="btn-icon delete" title="Sil" onclick="return confirm('Bu sahayı silmek istediğinizden emin misiniz?')">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
 
-<h2>{{ saha.name }} için Rezervasyon</h2>
+        <div class="saha-detail-info">
+            <div class="info-group">
+                <i class="fas fa-map-marker-alt"></i>
+                <div>
+                    <h3>Adres</h3>
+                    <p>{{ saha.address }}</p>
+                </div>
+            </div>
 
-<!-- Saha bilgileri -->
-<p><strong>Adres:</strong> {{ saha.address }}</p>
-<p><strong>Telefon:</strong> {{ saha.phone }}</p>
-<p><strong>Ücret:</strong> {{ saha.hourly_price }} ₺</p>
+            <div class="info-group">
+                <i class="fas fa-phone"></i>
+                <div>
+                    <h3>Telefon</h3>
+                    <p>{{ saha.phone }}</p>
+                </div>
+            </div>
 
-<!-- Eğer rezervasyon iptal edilmişse veya başarıyla tamamlanmışsa mesaj göster -->
-{% if mesaj %}
-    <p><strong>{{ mesaj }}</strong></p>
+            <div class="info-group">
+                <i class="fas fa-clock"></i>
+                <div>
+                    <h3>Çalışma Saatleri</h3>
+                    <p>{{ saha.opening_hours }}</p>
+                </div>
+            </div>
 
-<!-- Eğer rezervasyon formu gönderildiyse ve ödeme ekranı açıldıysa -->
-{% elif show_payment %}
-    <h3>💳 Ödeme Ekranı</h3>
-    <p>Toplam Ücret: {{ saha.hourly_price }} ₺</p>
-    <p>Kapora: 500.00 ₺</p>
+            <div class="info-group">
+                <i class="fas fa-tag"></i>
+                <div>
+                    <h3>Saatlik Ücret</h3>
+                    <p>{{ saha.hourly_price }} ₺</p>
+                </div>
+            </div>
 
+            <div class="info-group">
+                <i class="fas fa-map"></i>
+                <div>
+                    <h3>Konum</h3>
+                    <a href="{{ saha.location_url }}" target="_blank" class="map-link">
+                        <i class="fas fa-external-link-alt"></i> Haritada Göster
+                    </a>
+                </div>
+            </div>
+        </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" name="odeme_onayla">Ödemeyi Onayla</button>
-        <button type="submit" name="iptal_et">İptal Et</button>
-    </form>
+        {% if mesaj %}
+        <div class="alert alert-success">
+            {{ mesaj }}
+        </div>
+        {% endif %}
 
-<!-- İlk açılışta ya da form hatalıysa rezervasyon formunu göster -->
-{% else %}
-    <h3>📅 Rezervasyon Formu</h3>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" name="form_submit">Rezervasyon Yap</button>
-    </form>
-{% endif %}
+        <div class="rezervasyon-form">
+            <h3>Rezervasyon Yap</h3>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" name="form_submit" class="btn">Rezervasyon Yap</button>
+            </form>
 
+            {% if show_payment %}
+            <div class="payment-section">
+                <h3>Ödeme Bilgileri</h3>
+                <p>Toplam Tutar: {{ saha.hourly_price }} ₺</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="odeme_onayla" class="btn">Ödemeyi Onayla</button>
+                    <button type="submit" name="iptal_et" class="btn btn-danger">İptal Et</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

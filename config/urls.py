@@ -17,14 +17,25 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from main.views import HalisahaViewSet
+from main.views import (
+    HalisahaViewSet, 
+    UserViewSet, 
+    ReservationViewSet,
+    register_api,
+    login_api
+)
+from rest_framework_simplejwt.views import TokenRefreshView
 
 router = DefaultRouter()
-router.register(r'halisahalar', HalisahaViewSet)
-
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'halisahalar', HalisahaViewSet, basename='halisaha')
+router.register(r'rezervasyonlar', ReservationViewSet, basename='rezervasyon')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('main.urls')),  # main uygulamasına yönlendir
     path('api/', include(router.urls)),
+    path('api/register/', register_api, name='api_register'),
+    path('api/login/', login_api, name='api_login'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
