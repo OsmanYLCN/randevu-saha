@@ -7,6 +7,20 @@
     <div class="saha-detail-card">
         <div class="saha-detail-header">
             <h2>{{ saha.name }}</h2>
+            {% if user.is_authenticated and user.user_type == 'standard' %}
+                <form method="post" action="{% url 'favori_toggle' saha.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    {% if saha in user.favorite_sahalar.all %}
+                        <button type="submit" class="btn btn-outline" title="Favorilerden Çıkar">
+                            <i class="fas fa-heart-broken" style="color:red;"></i> Favorilerden Çıkar
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-outline" title="Favorilere Ekle">
+                            <i class="fas fa-heart" style="color:red;"></i> Favorilere Ekle
+                        </button>
+                    {% endif %}
+                </form>
+            {% endif %}
             {% if user.user_type == 'owner' and saha.owner == user %}
             <div class="saha-actions">
                 <a href="{% url 'saha_duzenle' saha.id %}" class="btn-icon" title="Düzenle">

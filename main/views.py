@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.utils import timezone
+from django.http import JsonResponse
 
 from .models import Halisaha, Reservation, CustomUser
 from .forms import HalisahaForm, ReservationForm, CustomUserCreationForm
@@ -326,3 +327,20 @@ def profil(request):
         return redirect('profil')
     
     return render(request, 'main/profil.html')
+
+@login_required
+def favori_toggle(request, saha_id):
+    saha = get_object_or_404(Halisaha, id=saha_id)
+    user = request.user
+    if saha in user.favorite_sahalar.all():
+        user.favorite_sahalar.remove(saha)
+        messages.info(request, f"'{saha.name}' favorilerinizden çıkarıldı.")
+    else:
+        user.favorite_sahalar.add(saha)
+        messages.success(request, f"'{saha.name}' favorilerinize eklendi.")
+    return redirect(request.META.get('HTTP_REFERER', 'saha_listesi'))
+
+@login_required
+def favori_sahalarim(request):
+    favori_sahalar = request.user.favorite_sahalar.all()
+    return render(request, 'main/favori_sahalarim.html', {'favori_sahalar': favori_sahalar})

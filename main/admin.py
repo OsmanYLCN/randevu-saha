@@ -5,7 +5,10 @@ from django.contrib.auth.admin import UserAdmin
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     fieldsets = UserAdmin.fieldsets + (
-        ("Kullanıcı Tipi", {'fields': ('user_type',)}),
+        (None, {'fields': ('user_type', 'favorite_sahalar')}),
+    )
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        (None, {'fields': ('user_type', 'favorite_sahalar')}),
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)

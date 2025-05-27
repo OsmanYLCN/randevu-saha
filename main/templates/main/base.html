@@ -23,6 +23,9 @@
                 <div class="user-dropdown">
                     <a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil Bilgilerim</a>
                     <a href="{% url 'rezervasyonlarim' %}"><i class="fas fa-calendar-alt"></i> Rezervasyonlarım</a>
+                    {% if user.user_type == 'standard' %}
+                    <a href="{% url 'favori_sahalarim' %}"><i class="fas fa-heart" style="color:red;"></i> Favori Sahalarım</a>
+                    {% endif %}
                     {% if user.user_type == 'owner' %}
                     <a href="{% url 'saha_listesi' %}"><i class="fas fa-futbol"></i> Sahalarım</a>
                     {% endif %}
@@ -40,23 +43,13 @@
     </header>
 
     <main class="container">
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        
         {% block content %}
         {% endblock %}
     </main>
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 RandevuSaha. Tüm hakları saklıdır.</p>
+            <p>&copy; 2025 RandevuSaha. Tüm hakları saklıdır.</p>
         </div>
     </footer>
 

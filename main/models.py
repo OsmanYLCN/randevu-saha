@@ -8,6 +8,7 @@ class CustomUser(AbstractUser):
         ('owner', 'Saha Sahibi'),
     )
     user_type = models.CharField(max_length=10, choices=USER_TYPES, default='standard')
+    favorite_sahalar = models.ManyToManyField('Halisaha', related_name='favori_kullanicilar', blank=True)
 
     def __str__(self):
         return f"{self.username} ({self.get_user_type_display()})"

@@ -22,4 +22,6 @@ urlpatterns = [
     path('rezervasyonlar/', views.rezervasyonlar, name='rezervasyonlar'),
     path('rezervasyonlarim/', views.rezervasyonlarim, name='rezervasyonlarim'),
     path('rezervasyon/<int:rezervasyon_id>/iptal/', views.rezervasyon_iptal, name='rezervasyon_iptal'),
+    path('favori/<int:saha_id>/', views.favori_toggle, name='favori_toggle'),
+    path('favori-sahalarim/', views.favori_sahalarim, name='favori_sahalarim'),
 ]

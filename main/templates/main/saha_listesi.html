@@ -35,6 +35,20 @@
                     </a>
                 </div>
                 {% endif %}
+                {% if user.is_authenticated and user.user_type == 'standard' %}
+                <form method="post" action="{% url 'favori_toggle' saha.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    {% if saha in user.favorite_sahalar.all %}
+                        <button type="submit" class="btn-icon" title="Favorilerden Çıkar">
+                            <i class="fas fa-heart-broken" style="color:red;"></i>
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn-icon" title="Favorilere Ekle">
+                            <i class="fas fa-heart" style="color:red;"></i>
+                        </button>
+                    {% endif %}
+                </form>
+                {% endif %}
             </div>
             <div class="saha-info">
                 <p><i class="fas fa-map-marker-alt"></i> {{ saha.address }}</p>
