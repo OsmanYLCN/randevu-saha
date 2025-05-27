@@ -5,6 +5,16 @@
 {% block content %}
 <div class="profile-container">
     <h2>Profil Bilgilerim</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'profile_message' in message.tags %}
+                <div class="alert alert-{{ message.tags|cut:'profile_message ' }}">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
     
     <form method="post" class="profile-form">
         {% csrf_token %}

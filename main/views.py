@@ -30,12 +30,34 @@ def saha_listesi(request):
     else:
         sahalar = Halisaha.objects.all()
 
-    # Sadece isim filtresi
+    # Arama kriterleri
     name = request.GET.get('name')
+    location = request.GET.get('location')
+    price_range = request.GET.get('price_range')
+
+    # Arama filtreleri
     if name:
         sahalar = sahalar.filter(name__icontains=name)
+    if location:
+        sahalar = sahalar.filter(address__icontains=location)
+    if price_range:
+        try:
+            min_price, max_price = map(float, price_range.split('-'))
+            if max_price == 9999:  # 3000+ TL seçeneği için
+                sahalar = sahalar.filter(hourly_price__gte=min_price)
+            else:
+                sahalar = sahalar.filter(hourly_price__gte=min_price, hourly_price__lte=max_price)
+        except (ValueError, TypeError):
+            messages.error(request, "Geçersiz ücret aralığı seçildi.", extra_tags='search_error')
+            return redirect('saha_listesi')
 
-    return render(request, 'main/saha_listesi.html', {'sahalar': sahalar})
+    # Sonuç bulunamadı mesajı için context
+    context = {
+        'sahalar': sahalar,
+        'no_results': not sahalar.exists() and (name or location or price_range)
+    }
+
+    return render(request, 'main/saha_listesi.html', context)
 
 
 @login_required
@@ -115,7 +137,7 @@ def login_view(request):
             else:
                 return redirect('rezervasyonlarim')
         else:
-            messages.error(request, 'Geçersiz kullanıcı adı veya şifre.')
+            messages.error(request, 'Geçersiz kullanıcı adı veya şifre.', extra_tags='login_message')
     
     return render(request, 'main/login.html')
 
@@ -147,7 +169,7 @@ def saha_detay(request, saha_id):
                 ).exists()
 
                 if existing_reservation:
-                    messages.error(request, "Bu tarih ve saat için rezervasyon zaten yapılmış. Lütfen başka bir tarih veya saat seçin.")
+                    messages.error(request, "Bu tarih ve saat için rezervasyon zaten yapılmış. Lütfen başka bir tarih veya saat seçin.", extra_tags='saha_error')
                     return render(request, 'main/saha_detail.html', {
                         'saha': saha,
                         'form': form
@@ -155,7 +177,7 @@ def saha_detay(request, saha_id):
 
                 # Geçmiş tarih kontrolü
                 if date < timezone.now().date():
-                    messages.error(request, "Geçmiş bir tarih seçemezsiniz.")
+                    messages.error(request, "Geçmiş bir tarih seçemezsiniz.", extra_tags='saha_error')
                     return render(request, 'main/saha_detail.html', {
                         'saha': saha,
                         'form': form
@@ -189,10 +211,10 @@ def saha_detay(request, saha_id):
                  del request.session['rez_saha_id']
                  del request.session['rez_date']
                  del request.session['rez_hour_range']
-                 messages.success(request, "Rezervasyon oluşturuldu. Güzel maçlar dileriz! ⚽")
+                 messages.success(request, "Rezervasyon oluşturuldu. Güzel maçlar dileriz! ⚽", extra_tags='saha_success')
                  return redirect('rezervasyonlarim') # Rezervasyonlarım sayfasına yönlendir
             else:
-                 messages.error(request, "Rezervasyon bilgileri eksik.")
+                 messages.error(request, "Rezervasyon bilgileri eksik.", extra_tags='saha_error')
                  return redirect('saha_detay', saha_id=saha.id)
 
         # Aşama 3: İptal edildiyse hiçbir şey kaydetme
@@ -204,7 +226,7 @@ def saha_detay(request, saha_id):
                 del request.session['rez_date']
             if 'rez_hour_range' in request.session:
                 del request.session['rez_hour_range']
-            messages.info(request, "Rezervasyon iptal edildi.")
+            messages.info(request, "Rezervasyon iptal edildi.", extra_tags='saha_info')
             return redirect('saha_detay', saha_id=saha.id)
 
         return render(request, 'main/saha_detail.html', {'saha': saha, 'form': form})
@@ -296,37 +318,56 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
 @login_required
 def profil(request):
+    user = request.user
     if request.method == 'POST':
-        # Kullanıcı bilgilerini güncelle
-        user = request.user
-        user.first_name = request.POST.get('first_name', '')
-        user.last_name = request.POST.get('last_name', '')
-        user.email = request.POST.get('email', '')
+        # Kullanıcı bilgilerini güncelle (password hariç)
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.email = request.POST.get('email', user.email)
         
-        # Şifre değişikliği kontrolü
+        password_changed = False
+        password_error = False
+
+        # Şifre değişikliği kontrolü sadece ilgili alanlar doluysa yapılır
         current_password = request.POST.get('current_password')
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
-        
-        if current_password and new_password and confirm_password:
-            if user.check_password(current_password):
-                if new_password == confirm_password:
-                    user.set_password(new_password)
-                    messages.success(request, 'Şifreniz başarıyla güncellendi.')
-                else:
-                    messages.error(request, 'Yeni şifreler eşleşmiyor.')
+
+        if current_password or new_password or confirm_password:
+            if not current_password or not new_password or not confirm_password:
+                 messages.error(request, 'Şifre değiştirmek için tüm şifre alanlarını doldurunuz.', extra_tags='profile_message')
+                 password_error = True
+            elif not user.check_password(current_password):
+                messages.error(request, 'Mevcut şifre yanlış.', extra_tags='profile_message')
+                password_error = True
+            elif new_password != confirm_password:
+                messages.error(request, 'Yeni şifreler eşleşmiyor.', extra_tags='profile_message')
+                password_error = True
             else:
-                messages.error(request, 'Mevcut şifre yanlış.')
+                # Şifre değiştirme başarılı
+                user.set_password(new_password)
+                password_changed = True
+                messages.success(request, 'Şifreniz başarıyla güncellendi.', extra_tags='profile_message')
+
+        # Genel profil bilgilerini kaydet (şifre hatası yoksa)
+        if not password_error:
+            try:
+                user.save()
+                if not password_changed: # Eğer şifre değişmediyse genel başarı mesajı ver
+                    messages.success(request, 'Profil bilgileriniz güncellendi.', extra_tags='profile_message')
+            except Exception as e:
+                messages.error(request, f'Profil güncellenirken bir hata oluştu: {e}', extra_tags='profile_message')
+            
+            # Hata yoksa aynı sayfada kalın, success mesajı base.html tarafından gösterilir
+            # redirect yapmaya gerek yok, render zaten formu ve mesajları yeniler
+            pass # İşlem tamam, render edilecek
         
-        try:
-            user.save()
-            messages.success(request, 'Profil bilgileriniz güncellendi.')
-        except Exception as e:
-            messages.error(request, 'Profil güncellenirken bir hata oluştu.')
-        
-        return redirect('profil')
-    
-    return render(request, 'main/profil.html')
+        # Hata varsa (password_error True ise) veya genel kayıtta hata oluştuysa
+        # render ederek aynı sayfada kal ve mesajları göster.
+        return render(request, 'main/profil.html', {'user': user})
+
+    # GET isteği veya POST hatası durumunda formu göster
+    return render(request, 'main/profil.html', {'user': user})
 
 @login_required
 def favori_toggle(request, saha_id):

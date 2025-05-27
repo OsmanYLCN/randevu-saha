@@ -8,9 +8,11 @@
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
-        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-            {{ message }}
-        </div>
+            {% if 'login_message' in message.tags %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags|cut:'login_message ' }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
     {% endif %}

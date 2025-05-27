@@ -13,12 +13,34 @@
                 <div class="form-group">
                     <input type="text" name="name" placeholder="Saha Adı" value="{{ request.GET.name }}">
                 </div>
+                <div class="form-group">
+                    <input type="text" name="location" placeholder="Konum" value="{{ request.GET.location }}">
+                </div>
+                <div class="form-group">
+                    <select name="price_range" class="form-control">
+                        <option value="">Ücret Bandı Seçin</option>
+                        <option value="0-500" {% if request.GET.price_range == '0-500' %}selected{% endif %}>0-500 TL</option>
+                        <option value="500-1000" {% if request.GET.price_range == '500-1000' %}selected{% endif %}>500-1000 TL</option>
+                        <option value="1000-1500" {% if request.GET.price_range == '1000-1500' %}selected{% endif %}>1000-1500 TL</option>
+                        <option value="1500-2000" {% if request.GET.price_range == '1500-2000' %}selected{% endif %}>1500-2000 TL</option>
+                        <option value="2000-2500" {% if request.GET.price_range == '2000-2500' %}selected{% endif %}>2000-2500 TL</option>
+                        <option value="2500-3000" {% if request.GET.price_range == '2500-3000' %}selected{% endif %}>2500-3000 TL</option>
+                        <option value="3000-9999" {% if request.GET.price_range == '3000-9999' %}selected{% endif %}>3000+ TL</option>
+                    </select>
+                </div>
             </div>
             <button type="submit" class="btn search-btn">
                 <i class="fas fa-search"></i> Ara
             </button>
         </form>
     </div>
+
+    {% if no_results %}
+    <div class="alert alert-warning" role="alert">
+        <i class="fas fa-exclamation-triangle"></i>
+        Aradığınız kriterlere uygun saha bulunamadı. Lütfen farklı arama kriterleri deneyin.
+    </div>
+    {% endif %}
 
     <div class="saha-grid">
         {% for saha in sahalar %}
@@ -54,6 +76,7 @@
                 <p><i class="fas fa-map-marker-alt"></i> {{ saha.address }}</p>
                 <p><i class="fas fa-phone"></i> {{ saha.phone }}</p>
                 <p><i class="fas fa-clock"></i> {{ saha.opening_hours }}</p>
+                <p><i class="fas fa-money-bill-wave"></i> {{ saha.hourly_price }} TL/saat</p>
             </div>
             <div class="saha-footer">
                 <a href="{% url 'saha_detay' saha.id %}" class="btn">
@@ -63,14 +86,15 @@
                         <i class="fas fa-calendar-check"></i>
                     {% endif %}
                 </a>
-                
             </div>
         </div>
         {% empty %}
+        {% if not no_results %}
         <div class="no-saha">
             <i class="fas fa-search"></i>
-            <p>Aradığınız kriterlere uygun saha bulunamadı.</p>
+            <p>Henüz hiç saha eklenmemiş.</p>
         </div>
+        {% endif %}
         {% endfor %}
     </div>
 
@@ -82,4 +106,76 @@
     </div>
     {% endif %}
 </div>
+
+<style>
+.saha-container {
+    width: 95%; /* Ya da istediğiniz başka bir yüzde/piksel değeri */
+    margin: 20px auto; /* Ortalamak için */
+}
+
+.search-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.search-inputs {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.search-btn {
+    align-self: flex-start;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+    background-color: #0056b3;
+}
+
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+}
+
+.alert i {
+    margin-right: 8px;
+}
+</style>
 {% endblock %}

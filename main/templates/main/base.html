@@ -22,12 +22,13 @@
                 </button>
                 <div class="user-dropdown">
                     <a href="{% url 'profil' %}"><i class="fas fa-user"></i> Profil Bilgilerim</a>
-                    <a href="{% url 'rezervasyonlarim' %}"><i class="fas fa-calendar-alt"></i> Rezervasyonlarım</a>
                     {% if user.user_type == 'standard' %}
-                    <a href="{% url 'favori_sahalarim' %}"><i class="fas fa-heart" style="color:red;"></i> Favori Sahalarım</a>
+                        <a href="{% url 'rezervasyonlarim' %}"><i class="fas fa-calendar-alt"></i> Rezervasyonlarım</a>
+                        <a href="{% url 'favori_sahalarim' %}"><i class="fas fa-heart" style="color:red;"></i> Favori Sahalarım</a>
                     {% endif %}
                     {% if user.user_type == 'owner' %}
-                    <a href="{% url 'saha_listesi' %}"><i class="fas fa-futbol"></i> Sahalarım</a>
+                        <a href="{% url 'saha_listesi' %}"><i class="fas fa-futbol"></i> Sahalarım</a>
+                        <a href="{% url 'rezervasyonlar' %}"><i class="fas fa-calendar-alt"></i> Rezervasyonlar</a>
                     {% endif %}
                     <form method="post" action="{% url 'logout' %}" style="display:inline;">
                     {% csrf_token %}
@@ -35,7 +36,6 @@
                         <i class="fas fa-sign-out-alt"></i> Çıkış Yap
                     </button>
                     </form>
-
                 </div>
             </div>
             {% endif %}
@@ -43,6 +43,22 @@
     </header>
 
     <main class="container">
+        {% if messages %}
+            {% for message in messages %}
+                {% comment %}
+                Genel mesajları (giriş, çıkış vb.) burada göster.
+                Saha detayına ait mesajları (saha_error, saha_success, saha_info)
+                ve arama hatalarını (search_error) ilgili sayfalarda gösteriyoruz.
+                Profil sayfası mesajları (profile_message) de profil.html içinde gösteriliyor.
+                {% endcomment %}
+                {% if not 'saha_error' in message.tags and not 'saha_success' in message.tags and not 'saha_info' in message.tags and not 'search_error' in message.tags and not 'profile_message' in message.tags and not 'login_message' in message.tags %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        
         {% block content %}
         {% endblock %}
     </main>
@@ -74,7 +90,5 @@
             }
         });
     </script>
-
-    
 </body>
 </html>

@@ -80,9 +80,11 @@
         {% if messages %}
         <div class="alert-container">
             {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
-                {{ message }}
-            </div>
+                {% if 'saha_error' in message.tags or 'saha_success' in message.tags or 'saha_info' in message.tags %}
+                    <div class="alert {% if 'saha_error' in message.tags %}alert-error{% elif 'saha_success' in message.tags %}alert-success{% elif 'saha_info' in message.tags %}alert-info{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
         {% endif %}
@@ -118,9 +120,9 @@
                 <p>Toplam Tutar: {{ saha.hourly_price }} ₺</p>
                 <form method="post">
                     {% csrf_token %}
-                    <div class="btn-group">
-                        <button type="submit" name="odeme_onayla" class="btn btn-primary">Ödemeyi Onayla</button>
-                        <button type="submit" name="iptal_et" class="btn btn-secondary">İptal Et</button>
+                    <div class="btn-group" style="margin-top: 15px; display: flex; justify-content: space-between;">
+                        <button type="submit" name="odeme_onayla" class="btn btn-warning" style="flex-grow: 1; margin-right: 5px;">Ödemeyi Onayla</button>
+                        <button type="submit" name="iptal_et" class="btn btn-danger" style="flex-grow: 1; margin-left: 5px;">İptal Et</button>
                     </div>
                 </form>
             </div>
